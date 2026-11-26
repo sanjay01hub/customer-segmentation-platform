@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
+from segmentation import run_pipeline
 
 app = Flask(__name__)
 app.secret_key = "change-this-later"
@@ -32,10 +33,26 @@ def upload():
         filename = secure_filename(file.filename)
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-        flash(f"Uploaded {filename} successfully.")
-        return redirect(url_for("upload"))
+        return redirect(url_for("results", filename=filename))
 
     return render_template("upload.html")
+
+
+@app.route("/results/<filename>")
+def results(filename):
+    filename = secure_filename(filename)
+    path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if not os.path.exists(path):
+        flash("File not found. Please upload again.")
+        return redirect(url_for("upload"))
+
+    try:
+        result = run_pipeline(path)
+    except Exception as e:
+        flash(f"Could not analyse this file: {e}")
+        return redirect(url_for("upload"))
+
+    return render_template("results.html", filename=filename, result=result)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Segmentation results</title>
+    <style>
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h1>Segmentation results</h1>
+    <p>File: <strong>{{ filename }}</strong></p>
+    <p>
+        Clean rows: {{ "{:,}".format(result.rows) }} |
+        Customers: {{ "{:,}".format(result.customers) }} |
+        Segments found: {{ result.k }}
+    </p>
+
+    <table>
+        <tr>
+            <th>Segment</th>
+            <th>Customers</th>
+            <th>Share (%)</th>
+            <th>Avg. recency (days)</th>
+            <th>Avg. orders</th>
+            <th>Avg. spend</th>
+        </tr>
+        {% for s in result.segments %}
+        <tr>
+            <td>{{ s.Segment }}</td>
+            <td>{{ "{:,}".format(s.Customers) }}</td>
+            <td>{{ s.Share }}</td>
+            <td>{{ s.Recency }}</td>
+            <td>{{ s.Frequency }}</td>
+            <td>{{ "{:,.0f}".format(s.Monetary) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="{{ url_for('upload') }}">Upload another file</a> |
+       <a href="{{ url_for('home') }}">Home</a></p>
+</body>
+</html>
