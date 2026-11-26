@@ -183,10 +183,6 @@ def make_insights(filename):
         flash("Please open the results first.")
         return redirect(url_for("results", filename=filename))
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        flash("No API key found. Add ANTHROPIC_API_KEY to the .env file and restart Flask.")
-        return redirect(url_for("results", filename=filename))
-
     with open(cache_path) as f:
         result = json.load(f)
 
@@ -198,7 +194,7 @@ def make_insights(filename):
 
     with open(insights_path, "w") as f:
         json.dump(data, f)
-    return redirect(url_for("results", filename=filename))
+    return redirect(url_for("results", filename=filename, show=1))
 
 
 @app.route("/history")

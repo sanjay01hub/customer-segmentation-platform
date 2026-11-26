@@ -61,20 +61,36 @@
 
 <div class="card">
     <h2>Marketing insights</h2>
+
+    {% set show_now = request.args.get('show') %}
+
     {% if insights %}
-        {% for i in insights %}
-        <div class="insight">
-            <h3>{{ i.segment }}</h3>
-            <p>{{ i.summary }}</p>
-            <ul>
-                {% for a in i.actions %}
-                <li>{{ a }}</li>
-                {% endfor %}
-            </ul>
+        <div id="insightsBox" {% if not show_now %}style="display:none"{% endif %}>
+            {% for i in insights %}
+            <div class="insight">
+                <h3>{{ i.segment }}</h3>
+                <p>{{ i.summary }}</p>
+                <ul>
+                    {% for a in i.actions %}
+                    <li>{{ a }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+
+        {% if not show_now %}
+        <div id="insightsIntro">
+            <p class="muted">Get an explanation and three marketing actions for each segment.</p>
+            <button class="btn" type="button"
+                    onclick="document.getElementById('insightsBox').style.display='block';
+                             document.getElementById('insightsIntro').style.display='none';">
+                Generate marketing insights
+            </button>
+        </div>
+        {% endif %}
     {% else %}
-        <p class="muted">Get an AI-written explanation and three marketing actions for each segment.</p>
+        <p class="muted">Get an explanation and three marketing actions for each segment.</p>
         <form method="POST" action="{{ url_for('make_insights', filename=stored_name) }}">
             <button class="btn" type="submit">Generate marketing insights</button>
         </form>
