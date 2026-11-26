@@ -42,17 +42,21 @@
     </table>
 
     <div class="chart-box">
-        <canvas id="sizeChart"></canvas>
+        <canvas id="sizeChart"
+                data-labels='{{ result.segments | map(attribute="Segment") | list | tojson }}'
+                data-counts='{{ result.segments | map(attribute="Customers") | list | tojson }}'></canvas>
     </div>
 
     <p><a href="{{ url_for('upload') }}">Upload another file</a> |
+       <a href="{{ url_for('history') }}">My analyses</a> |
        <a href="{{ url_for('home') }}">Home</a></p>
 
     <script>
-        const labels = {{ result.segments | map(attribute='Segment') | list | tojson }};
-        const counts = {{ result.segments | map(attribute='Customers') | list | tojson }};
+        const chartEl = document.getElementById("sizeChart");
+        const labels = JSON.parse(chartEl.dataset.labels);
+        const counts = JSON.parse(chartEl.dataset.counts);
 
-        new Chart(document.getElementById("sizeChart"), {
+        new Chart(chartEl, {
             type: "bar",
             data: {
                 labels: labels,
@@ -63,8 +67,10 @@
                 }]
             },
             options: {
-                plugins: { legend: { display: false },
-                           title: { display: true, text: "Customers per segment" } },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: "Customers per segment" }
+                },
                 scales: { y: { beginAtZero: true } }
             }
         });
