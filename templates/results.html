@@ -59,6 +59,28 @@
     </div>
 </div>
 
+<div class="card">
+    <h2>Marketing insights</h2>
+    {% if insights %}
+        {% for i in insights %}
+        <div class="insight">
+            <h3>{{ i.segment }}</h3>
+            <p>{{ i.summary }}</p>
+            <ul>
+                {% for a in i.actions %}
+                <li>{{ a }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="muted">Get an AI-written explanation and three marketing actions for each segment.</p>
+        <form method="POST" action="{{ url_for('make_insights', filename=stored_name) }}">
+            <button class="btn" type="submit">Generate marketing insights</button>
+        </form>
+    {% endif %}
+</div>
+
 <p>
     <a class="btn" href="{{ url_for('upload') }}">Upload another file</a>
     <a class="btn secondary" href="{{ url_for('history') }}">My analyses</a>

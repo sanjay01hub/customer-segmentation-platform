@@ -1,10 +1,15 @@
 import os
 import json
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 from werkzeug.utils import secure_filename
+
+load_dotenv()
+
 from segmentation import run_pipeline
+from insights import generate_insights
 from models import db, User, Analysis
 
 app = Flask(__name__)
@@ -39,6 +44,11 @@ def to_json_safe(o):
 def display_name(stored_name):
     # removes the "<user id>_" prefix
     return stored_name.split("_", 1)[1] if "_" in stored_name else stored_name
+
+
+def cache_paths(filename):
+    base = os.path.join(app.config["CACHE_FOLDER"], filename)
+    return base + ".json", base + ".insights.json"
 
 
 @app.route("/")
@@ -131,7 +141,7 @@ def results(filename):
         return redirect(url_for("upload"))
 
     os.makedirs(app.config["CACHE_FOLDER"], exist_ok=True)
-    cache_path = os.path.join(app.config["CACHE_FOLDER"], filename + ".json")
+    cache_path, insights_path = cache_paths(filename)
 
     if os.path.exists(cache_path) and os.path.getmtime(cache_path) >= os.path.getmtime(path):
         with open(cache_path) as f:
@@ -145,10 +155,50 @@ def results(filename):
             return redirect(url_for("upload"))
         with open(cache_path, "w") as f:
             json.dump(result, f, default=to_json_safe)
+        # the data changed, so any old insights are out of date
+        if os.path.exists(insights_path):
+            os.remove(insights_path)
         from_cache = False
 
+    insights = None
+    if os.path.exists(insights_path):
+        with open(insights_path) as f:
+            insights = json.load(f)
+
     return render_template("results.html", filename=display_name(filename),
-                           result=result, from_cache=from_cache)
+                           stored_name=filename, result=result,
+                           from_cache=from_cache, insights=insights)
+
+
+@app.route("/insights/<filename>", methods=["POST"])
+@login_required
+def make_insights(filename):
+    filename = secure_filename(filename)
+    if not filename.startswith(f"{current_user.id}_"):
+        flash("You can only view your own analyses.")
+        return redirect(url_for("history"))
+
+    cache_path, insights_path = cache_paths(filename)
+    if not os.path.exists(cache_path):
+        flash("Please open the results first.")
+        return redirect(url_for("results", filename=filename))
+
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        flash("No API key found. Add ANTHROPIC_API_KEY to the .env file and restart Flask.")
+        return redirect(url_for("results", filename=filename))
+
+    with open(cache_path) as f:
+        result = json.load(f)
+
+    try:
+        data = generate_insights(result["segments"])
+    except Exception as e:
+        flash(f"Could not generate insights: {e}")
+        return redirect(url_for("results", filename=filename))
+
+    with open(insights_path, "w") as f:
+        json.dump(data, f)
+    return redirect(url_for("results", filename=filename))
 
 
 @app.route("/history")
