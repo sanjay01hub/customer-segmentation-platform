@@ -2,15 +2,18 @@
 <html>
 <head>
     <title>Segmentation results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         table { border-collapse: collapse; }
         th, td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
         th { background: #eee; }
+        .chart-box { max-width: 700px; margin: 24px 0; }
     </style>
 </head>
 <body>
     <h1>Segmentation results</h1>
-    <p>File: <strong>{{ filename }}</strong></p>
+    <p>File: <strong>{{ filename }}</strong>
+       {% if from_cache %}(loaded from saved results){% else %}(freshly analysed){% endif %}</p>
     <p>
         Clean rows: {{ "{:,}".format(result.rows) }} |
         Customers: {{ "{:,}".format(result.customers) }} |
@@ -38,7 +41,33 @@
         {% endfor %}
     </table>
 
+    <div class="chart-box">
+        <canvas id="sizeChart"></canvas>
+    </div>
+
     <p><a href="{{ url_for('upload') }}">Upload another file</a> |
        <a href="{{ url_for('home') }}">Home</a></p>
+
+    <script>
+        const labels = {{ result.segments | map(attribute='Segment') | list | tojson }};
+        const counts = {{ result.segments | map(attribute='Customers') | list | tojson }};
+
+        new Chart(document.getElementById("sizeChart"), {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Customers per segment",
+                    data: counts,
+                    backgroundColor: ["#2e7d32", "#1565c0", "#c62828", "#ef6c00"]
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false },
+                           title: { display: true, text: "Customers per segment" } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
 </body>
 </html>
