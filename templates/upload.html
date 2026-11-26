@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Upload data</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Upload data{% endblock %}
+
+{% block content %}
+<div class="card">
     <h1>Upload customer data</h1>
-
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <p><strong>{{ message }}</strong></p>
-        {% endfor %}
-    {% endwith %}
-
+    <p class="muted">Choose a .csv or .xlsx file with InvoiceNo, CustomerID, Quantity, UnitPrice and InvoiceDate columns. Large files can take 1 to 2 minutes the first time.</p>
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="file" accept=".csv,.xlsx">
-        <button type="submit">Upload</button>
+        <button class="btn" type="submit">Upload and analyse</button>
     </form>
-
-    <p><a href="{{ url_for('home') }}">Back to home</a></p>
-</body>
-</html>
+</div>
+{% endblock %}

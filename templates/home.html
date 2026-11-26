@@ -1,20 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Customer Segmentation Platform</title>
-</head>
-<body>
-    <h1>Customer Segmentation Platform</h1>
-    <p>Upload customer data and get behavior-based segments.</p>
+{% extends "base.html" %}
 
+{% block content %}
+<div class="card hero">
+    <h1>Customer Segmentation Platform</h1>
+    <p>Upload your customer data and get behavior-based segments, so you know who your best, loyal and at-risk customers are.</p>
     {% if current_user.is_authenticated %}
-        <p>Logged in as {{ current_user.email }}</p>
-        <p><a href="{{ url_for('upload') }}">Upload a file</a> |
-           <a href="{{ url_for('history') }}">My analyses</a> |
-           <a href="{{ url_for('logout') }}">Log out</a></p>
+        <a class="btn" href="{{ url_for('upload') }}">Upload a file</a>
+        <a class="btn secondary" href="{{ url_for('history') }}">My analyses</a>
     {% else %}
-        <p><a href="{{ url_for('login') }}">Log in</a> |
-           <a href="{{ url_for('register') }}">Register</a></p>
+        <a class="btn" href="{{ url_for('register') }}">Get started</a>
+        <a class="btn secondary" href="{{ url_for('login') }}">Log in</a>
     {% endif %}
-</body>
-</html>
+</div>
+{% endblock %}
