@@ -13,7 +13,7 @@ from insights import generate_insights
 from models import db, User, Analysis
 
 app = Flask(__name__)
-app.secret_key = "change-this-later"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["CACHE_FOLDER"] = "cache"
 app.config["MAX_CONTENT_LENGTH"] = 30 * 1024 * 1024  # 30 MB limit
@@ -207,4 +207,4 @@ def history():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
