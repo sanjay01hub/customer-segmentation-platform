@@ -1,0 +1,73 @@
+{% extends "base_new.html" %}
+{% block title %}Stock check{% endblock %}
+{% block content %}
+<h1>Your stock check</h1>
+<p class="lead">{{ filename }}</p>
+
+<div class="stats">
+  <div class="stat"><span class="k">Products</span><span class="v">{{ r.products }}</span></div>
+  <div class="stat {{ 'bad' if r.counts['Out of stock'] else 'good' }}"><span class="k">Out of stock</span><span class="v">{{ r.counts['Out of stock'] }}</span></div>
+  <div class="stat {{ 'okay' if (r.counts['Reorder now'] + r.counts['Low']) else 'good' }}"><span class="k">Reorder soon</span><span class="v">{{ r.counts['Reorder now'] + r.counts['Low'] }}</span></div>
+  <div class="stat {{ 'okay' if (r.counts['Overstocked'] + r.counts['No sales']) else 'good' }}"><span class="k">Too much or not selling</span><span class="v">{{ r.counts['Overstocked'] + r.counts['No sales'] }}</span></div>
+  {% if r.total_value %}<div class="stat"><span class="k">Money in stock</span><span class="v">{{ r.total_value }}</span></div>{% endif %}
+</div>
+
+<div class="card">
+  <h2>What your stock says</h2>
+  <ul class="clean">
+    {% for f in r.findings %}<li class="{{ f.tone }}">{{ f.text }}</li>{% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>What to do this week</h2>
+  <ol class="steps">{% for a in r.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+</div>
+
+{% for name, pill in order %}
+  {% set sec = r.sections[name] %}
+  {% if sec.count %}
+  <div class="card">
+    <h2>{{ _(name) }} <span class="pill {{ pill }}">{{ sec.count }}</span></h2>
+    <p class="muted">{{ r.tips[name] }}</p>
+    <div class="tablewrap">
+    <table>
+      <tr>
+        <th>Product</th><th>In stock</th>
+        {% if r.has_rate %}<th>Days of cover</th>{% endif %}
+        <th>Suggested order</th>
+        {% if r.has_value %}<th>Stock value</th>{% endif %}
+      </tr>
+      {% for x in sec.rows %}
+      <tr>
+        <td><strong>{{ x.name }}</strong></td><td>{{ x.stock }}</td>
+        {% if r.has_rate %}<td>{{ x.cover if x.cover is not none else '-' }}</td>{% endif %}
+        <td>{{ x.order if x.order is not none else '-' }}</td>
+        {% if r.has_value %}<td>{{ x.value if x.value else '-' }}</td>{% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+    </div>
+    {% if sec.count > sec.rows|length %}<p class="hint">{{ sec.rows|length }} / {{ sec.count }}</p>{% endif %}
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% if r.top_stock %}
+<div class="card">
+  <h2>Where your money is stored</h2>
+  <div class="bars">
+    {% for b in r.top_stock %}
+    <div class="row">
+      <span class="lab" title="{{ b.label }}">{{ b.label }}</span>
+      <span class="track"><span class="fill" style="width:{{ b.pct }}%"></span></span>
+      <span>{{ b.value }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<p><a class="btn ghost" href="{{ url_for('stock_upload') }}">Upload another file</a>
+   <a class="btn ghost" href="{{ url_for('home') }}">Back to options</a></p>
+{% endblock %}

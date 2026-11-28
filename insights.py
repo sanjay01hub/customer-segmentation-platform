@@ -27,6 +27,14 @@ PLAYBOOK = {
     ],
 }
 
+# Who to target first, and why
+TARGET = {
+    "Champions": ("Reward", "Protect these first. They bring the most money."),
+    "Loyal": ("Grow", "Best chance to raise order value with bundles and points."),
+    "At-risk": ("Win back", "Contact these soon, before they are lost for good."),
+    "Occasional": ("Nurture", "Low cost to try: small offers can turn them into regulars."),
+}
+
 
 def _kind(name):
     for key in PLAYBOOK:
@@ -48,6 +56,8 @@ def rule_based_insights(segments):
         )
         out.append({
             "segment": s["Segment"],
+            "tag": TARGET[kind][0],
+            "why": TARGET[kind][1],
             "summary": summary,
             "actions": PLAYBOOK[kind],
         })
@@ -85,10 +95,38 @@ def ai_insights(segments):
     )
     text = message.content[0].text.strip()
     text = text.replace("```json", "").replace("```", "").strip()
-    return json.loads(text)
+    data = json.loads(text)
+    for item in data:
+        kind = _kind(item["segment"])
+        item.setdefault("tag", TARGET[kind][0])
+        item.setdefault("why", TARGET[kind][1])
+    return data
 
 
 def generate_insights(segments):
     if USE_AI:
         return ai_insights(segments)
     return rule_based_insights(segments)
+
+
+# ---------------------------------------------------------------- message writer
+MESSAGES = {
+    "en": {
+        "Champions": "Hi! Thank you for being one of our best customers at {shop}. As a thank you, you get early access to our new arrivals this week. Reply YES and we will keep your favourites ready.",
+        "Loyal": "Hi! Thanks for shopping with {shop} again and again. Buy 2 items this week and get a special loyalty discount. See you soon!",
+        "At-risk": "Hi! We miss you at {shop}. Here is 10% off your next order, valid this week only. Come back and see what is new!",
+        "Occasional": "Hi! Welcome to {shop}. Here is a small gift: 5% off your next order. Our best sellers are waiting for you!",
+    },
+    "ta": {
+        "Champions": "வணக்கம்! {shop} கடையின் சிறந்த வாடிக்கையாளர்களில் ஒருவராக இருப்பதற்கு நன்றி. இந்த வாரம் எங்கள் புதிய பொருட்களை முதலில் பார்க்கும் வாய்ப்பு உங்களுக்கு. 'ஆம்' என்று பதிலளியுங்கள், உங்களுக்குப் பிடித்தவற்றை ஒதுக்கி வைக்கிறோம்.",
+        "Loyal": "வணக்கம்! {shop} கடையில் தொடர்ந்து வாங்குவதற்கு நன்றி. இந்த வாரம் 2 பொருட்கள் வாங்கினால் சிறப்பு தள்ளுபடி கிடைக்கும். விரைவில் சந்திப்போம்!",
+        "At-risk": "வணக்கம்! {shop} கடையில் உங்களைத் தவறவிடுகிறோம். அடுத்த ஆர்டருக்கு 10% தள்ளுபடி, இந்த வாரம் மட்டும். வந்து புதியவற்றைப் பாருங்கள்!",
+        "Occasional": "வணக்கம்! {shop} கடைக்கு வரவேற்கிறோம். சிறிய பரிசாக அடுத்த ஆர்டருக்கு 5% தள்ளுபடி. எங்கள் அதிகம் விற்கும் பொருட்கள் உங்களுக்காகக் காத்திருக்கின்றன!",
+    },
+}
+
+
+def messages_for(segments, lang="en"):
+    """One ready-to-send message per customer group. {shop} is filled in by the page."""
+    book = MESSAGES["ta" if lang == "ta" else "en"]
+    return [{"segment": s["Segment"], "text": book[_kind(s["Segment"])]} for s in segments]

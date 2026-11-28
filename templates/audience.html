@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Who buys what{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+{% set active = 'audience' %}
+{% include "_tabs.html" %}
+{% if not r.audience %}
+<div class="note warn">This needs a Description or StockCode column. This file has neither.</div>
+{% else %}
+<div class="note warn"><strong>This is an estimate.</strong> Your file has no age or gender. We guess the group from words in the product name (for example "kids", "baby", "ladies"). Products that match nothing go to "General / both".</div>
+<div class="grid-2">
+    <div class="card"><h2>Share of sales</h2><div class="chart-box"><canvas id="audChart"></canvas></div></div>
+    <div class="card">
+        <h2>Summary</h2>
+        <div class="table-wrap"><table>
+            <tr><th>Group</th><th class="num">Products</th><th class="num">Units</th><th class="num">Share %</th></tr>
+            {% for a in r.audience %}<tr><td>{{ a.group }}</td><td class="num">{{ a.products }}</td><td class="num">{{ "{:,}".format(a.units) }}</td><td class="num">{{ a.share }}</td></tr>{% endfor %}
+        </table></div>
+    </div>
+</div>
+<div class="who">
+    {% for a in r.audience if a.top %}
+    <div class="card">
+        <h3>{{ a.group }}</h3>
+        <div class="bar"><span style="width: {{ a.share }}%"></span></div>
+        <p class="muted small">{{ a.share }}% of sales</p>
+        <ol>{% for t in a.top %}<li>{{ t.name }}</li>{% endfor %}</ol>
+    </div>
+    {% endfor %}
+</div>
+<script>
+new Chart(document.getElementById("audChart"), {
+    type: "doughnut",
+    data: { labels: {{ r.audience | map(attribute="group") | list | tojson }},
+            datasets: [{ data: {{ r.audience | map(attribute="revenue") | list | tojson }},
+                         backgroundColor: ["#ff5c7a", "#3b82f6", "#ff9f1c", "#0fb5a5", "#c9b6f5"] }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+});
+</script>
+{% endif %}
+{% endblock %}

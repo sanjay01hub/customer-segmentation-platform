@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Customer Segmentation Platform{% endblock %}</title>
+    <title>{% block title %}CustomerInsight{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
-        <a class="brand" href="{{ url_for('home') }}">Customer Segmentation</a>
+        <a class="brand" href="{{ url_for('home') }}">Customer<span>Insight</span></a>
         <div class="links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('upload') }}">Upload</a>
@@ -20,16 +23,13 @@
                 <a href="{{ url_for('login') }}">Log in</a>
                 <a href="{{ url_for('register') }}">Register</a>
             {% endif %}
+            <a class="lang" href="{{ url_for('set_lang', code='en' if lang == 'ta' else 'ta') }}">{{ 'English' if lang == 'ta' else 'தமிழ்' }}</a>
         </div>
     </nav>
-
     <main class="container">
         {% with messages = get_flashed_messages() %}
-            {% for message in messages %}
-                <div class="flash">{{ message }}</div>
-            {% endfor %}
+            {% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
         {% endwith %}
-
         {% block content %}{% endblock %}
     </main>
 </body>

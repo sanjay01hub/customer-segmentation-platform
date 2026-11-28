@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Fast and slow products{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+{% set active = 'products' %}
+{% include "_tabs.html" %}
+{% set p = r.products %}
+{% if not p %}
+<div class="note warn">Product analysis needs a Description or StockCode column. This file has neither.</div>
+{% else %}
+<div class="grid-2">
+    <div class="card">
+        <h2>Product movement</h2>
+        <div class="chart-box"><canvas id="moveChart"></canvas></div>
+    </div>
+    <div class="card">
+        <h2>How we decide</h2>
+        <p><span class="badge b-grow">Fast</span> Sells in the top quarter by units and has sold recently.</p>
+        <p><span class="badge b-win">Slow</span> Sells in the bottom quarter, or has had no sale for a long time.</p>
+        <p><span class="badge b-nurture">Medium</span> Everything in between.</p>
+        <p class="muted small">This uses sales history only. It is a guide, not a stock count.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Low stock risk</h2>
+    {% if p.low_mode == 'stock' %}
+        <p class="muted">Your file has a Stock column. These products may run out within 14 days at their usual sales speed.</p>
+    {% else %}
+        <p class="muted">Your file has no stock column, so we cannot see real stock. These fast products are selling faster than usual in the last 30 days, so check their stock.</p>
+    {% endif %}
+    {% if p.low_stock %}
+    <div class="table-wrap"><table>
+        <tr><th>Product</th>{% if p.low_mode == 'stock' %}<th class="num">In stock</th><th class="num">Days of cover</th>{% endif %}<th>What to do</th></tr>
+        {% for x in p.low_stock %}
+        <tr><td>{{ x.name }}</td>{% if p.low_mode == 'stock' %}<td class="num">{{ x.stock }}</td><td class="num">{{ x.cover }}</td>{% endif %}<td>{{ x.note }}</td></tr>
+        {% endfor %}
+    </table></div>
+    {% else %}<p>No products look at risk right now.</p>{% endif %}
+</div>
+
+<div class="card">
+    <h2>Fast-moving products</h2>
+    <div class="table-wrap"><table>
+        <tr><th>Product</th><th class="num">Units sold</th><th class="num">Sales</th><th class="num">Units / month</th></tr>
+        {% for x in p.fast %}
+        <tr><td>{{ x.name }}</td><td class="num">{{ "{:,}".format(x.units) }}</td><td class="num">{{ "{:,.0f}".format(x.revenue) }}</td><td class="num">{{ x.per_month }}</td></tr>
+        {% endfor %}
+    </table></div>
+    <p class="muted small">Keep these in stock, show them first, and do not discount them.</p>
+    <div class="btn-row"><a class="btn small" href="{{ url_for('download', filename=stored_name, kind='fast') }}">Download (CSV)</a></div>
+</div>
+
+<div class="card">
+    <h2>Slow-moving products: why and what to try</h2>
+    <div class="table-wrap"><table>
+        <tr><th>Product</th><th class="num">Units</th><th class="num">Days since last sale</th><th>Likely issue</th><th>Idea to sell faster</th></tr>
+        {% for x in p.slow %}
+        <tr><td>{{ x.name }}</td><td class="num">{{ x.units }}</td><td class="num">{{ x.days_since }}</td><td>{{ x.why }}</td><td>{{ x.idea }}</td></tr>
+        {% endfor %}
+    </table></div>
+    <div class="btn-row"><a class="btn small" href="{{ url_for('download', filename=stored_name, kind='slow') }}">Download (CSV)</a></div>
+</div>
+<script>
+new Chart(document.getElementById("moveChart"), {
+    type: "doughnut",
+    data: { labels: {{ [_("Fast"), _("Medium"), _("Slow")] | tojson }},
+            datasets: [{ data: [{{ p.counts.Fast }}, {{ p.counts.Medium }}, {{ p.counts.Slow }}], backgroundColor: ["#0fb5a5", "#4a1d96", "#ff5c7a"] }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+});
+</script>
+{% endif %}
+{% endblock %}

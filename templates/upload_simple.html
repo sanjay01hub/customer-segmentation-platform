@@ -1,0 +1,83 @@
+{% extends "base_new.html" %}
+{% block title %}Upload
+{% if kind == 'any' or kind == 'report' %}
+<div class="card">
+  <h2>What can I analyse?</h2>
+  <p class="muted">Any table of data. Name your columns clearly (for example Salary, Machine, Marks, Likes) and the report is written for your kind of business.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Data</th><th>What you will see</th></tr>
+    <tr><td><strong>Sales</strong></td><td>Revenue, products sold, best product and month, profit, rising or falling products, forecast</td></tr>
+    <tr><td><strong>Customer</strong></td><td>Age groups, preferences, satisfaction, unhappy groups</td></tr>
+    <tr><td><strong>Financial</strong></td><td>Income, expenses, balance, losses, biggest spending</td></tr>
+    <tr><td><strong>Marketing</strong></td><td>Clicks, conversions, cost per result, where to move budget</td></tr>
+    <tr><td><strong>Employee / HR</strong></td><td>Attendance, pay, productivity, people leaving, long hours</td></tr>
+    <tr><td><strong>Student</strong></td><td>Marks, attendance, pass percentage, toppers, students who need help</td></tr>
+    <tr><td><strong>Healthcare</strong></td><td>Patients, diseases, age groups, repeat patients, which treatment works</td></tr>
+    <tr><td><strong>E-commerce</strong></td><td>Orders, returns, cancellations, product problems</td></tr>
+    <tr><td><strong>Website</strong></td><td>Visitors, page views, bounce rate, best traffic source</td></tr>
+    <tr><td><strong>Social media</strong></td><td>Likes, shares, comments, engagement, best post type and day</td></tr>
+    <tr><td><strong>Inventory</strong></td><td>Out of stock, below reorder level, shortage and overstock</td></tr>
+    <tr><td><strong>Supply chain</strong></td><td>Shipping, delivery, delays, fastest route, fuel</td></tr>
+    <tr><td><strong>Banking</strong></td><td>Transactions, fraud, loan repayment, credit risk</td></tr>
+    <tr><td><strong>Telecom</strong></td><td>Call duration, data use, churn, weak network</td></tr>
+    <tr><td><strong>Agriculture</strong></td><td>Crop yield, rainfall, fertiliser, when to water, pests</td></tr>
+    <tr><td><strong>Real estate</strong></td><td>Property prices, rent, location, demand, size</td></tr>
+    <tr><td><strong>Transport</strong></td><td>Routes, fuel, accidents, travel time</td></tr>
+    <tr><td><strong>Weather</strong></td><td>Temperature, rainfall, humidity, wind, hottest and wettest period</td></tr>
+    <tr><td><strong>Product</strong></td><td>Ratings, quality, defects, demand, products to improve</td></tr>
+    <tr><td><strong>Government / public</strong></td><td>Population, unemployment, crime, literacy, where help is needed most</td></tr>
+    <tr><td><strong>Factory</strong></td><td>Defect rate, worst machine or shift, downtime</td></tr>
+  </table></div>
+  <p class="hint">Every report also shows trends, comparisons, problems, relationships, a rough forecast and a "what to do next" list.</p>
+</div>
+{% endif %}
+{% endblock %}
+{% block content %}
+{% if kind == 'any' %}
+  <h1>Upload your file</h1>
+  <p class="lead">Upload any file: CSV, Excel, TSV, TXT, JSON, ODS or a PDF with a table about anything. Sales files get customer and product analysis. Every other file gets a general report.</p>
+{% elif kind == 'report' %}
+  <h1>Any-file report</h1>
+  <p class="lead">Upload any file: CSV, Excel, TSV, TXT, JSON, ODS or a PDF with a table. It can be about anything: sales, marks, attendance, patients, expenses.</p>
+{% else %}
+  <h1>Stock check</h1>
+  <p class="lead">Upload your stock list or your sales file. We show what to reorder and what is stuck.</p>
+{% endif %}
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    <label for="file">Choose a file</label>
+    <input id="file" type="file" name="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xls,.ods,.json,.jsonl,.pdf" required>
+    {% if kind == 'any' or kind == 'report' %}
+      <p class="hint">The first row must be the column names. Nothing else is needed.</p>
+    {% else %}
+      <p class="hint">Needed: a product name column and a stock column (for example Product, Stock).</p>
+      <p class="hint">Better results with: Price, Reorder level, or a sales file with Date and Quantity.</p>
+    {% endif %}
+    <p><button class="btn" type="submit">Upload and analyse</button></p>
+  </form>
+</div>
+
+{% if kind == 'any' or kind == 'report' %}
+<div class="card">
+  <h2>What can I analyse?</h2>
+  <p class="muted">Any table of data. Name your columns clearly (for example Salary, Machine, Marks, Likes) and the report is written for your kind of business.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Data</th><th>What you will see</th></tr>
+    <tr><td><strong>Sales</strong></td><td>Best product, best month, profit per product, is each product rising or falling, next-month forecast</td></tr>
+    <tr><td><strong>Customers</strong></td><td>Age groups, what they prefer, who is unhappy</td></tr>
+    <tr><td><strong>Money (income / expenses)</strong></td><td>Balance, biggest spending, where to cut cost</td></tr>
+    <tr><td><strong>School / college</strong></td><td>Weak subjects, toppers, students who need help, attendance effect</td></tr>
+    <tr><td><strong>Clinic / hospital</strong></td><td>Common illnesses, age groups, repeat patients, which treatment works</td></tr>
+    <tr><td><strong>Social media</strong></td><td>Which post type and day get the most engagement</td></tr>
+    <tr><td><strong>Website</strong></td><td>Visitors, bounce rate, best traffic source, pages to fix</td></tr>
+    <tr><td><strong>Employees</strong></td><td>Pay by department, unfair pay, people leaving, long hours</td></tr>
+    <tr><td><strong>Agriculture</strong></td><td>Best crop, effect of rain and fertiliser, when to water, common pests</td></tr>
+    <tr><td><strong>Transport / delivery</strong></td><td>Late deliveries, fastest route, fuel use</td></tr>
+    <tr><td><strong>Factory</strong></td><td>Defect rate, worst machine or shift, downtime</td></tr>
+    <tr><td><strong>E-commerce / marketing</strong></td><td>Returns and cancellations, cost per result, where to move budget</td></tr>
+  </table></div>
+  <p class="hint">Every report also shows trends, comparisons, problems, relationships, a rough forecast and a "what to do next" list.</p>
+</div>
+{% endif %}
+{% endblock %}

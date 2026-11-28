@@ -1,0 +1,33 @@
+{% extends "base_new.html" %}
+{% block title %}Business Insights{% endblock %}
+{% block content %}
+<h1>Know your data. Grow your business.</h1>
+<p class="lead">Pick what you need. Each option gives you a clear report in plain words, in English or Tamil.</p>
+
+<div class="grid g4">
+  <div class="card option">
+    <span class="num">1</span>
+    <h3>Any-file report</h3>
+    <p>Upload any CSV or Excel file (sales, marks, attendance, anything) and get a report on what your data says.</p>
+    <a class="btn" href="{{ url_for('report_upload') }}">Open</a>
+  </div>
+  <div class="card option">
+    <span class="num">2</span>
+    <h3>Valuable customers</h3>
+    <p>Find your best customers, who is about to leave, and whom to target first. Needs a sales file with a customer ID.</p>
+    <a class="btn" href="{{ url_for('upload') }}">Open</a>
+  </div>
+  <div class="card option">
+    <span class="num">3</span>
+    <h3>Stock check</h3>
+    <p>See what is out of stock, running low, overstocked or not selling, and how much to order.</p>
+    <a class="btn" href="{{ url_for('stock_upload') }}">Open</a>
+  </div>
+  <div class="card option">
+    <span class="num">4</span>
+    <h3>Grow my business</h3>
+    <p>Tell us about your business and your goal. Get a practical plan to win more customers in your area.</p>
+    <a class="btn" href="{{ url_for('grow_page') }}">Open</a>
+  </div>
+</div>
+{% endblock %}

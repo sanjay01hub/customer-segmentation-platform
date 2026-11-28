@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Upload data{% endblock %}
-
 {% block content %}
 <div class="card">
-    <h1>Upload customer data</h1>
-    <p class="muted">Choose a .csv or .xlsx file with InvoiceNo, CustomerID, Quantity, UnitPrice and InvoiceDate columns. Large files can take 1 to 2 minutes the first time.</p>
+    <h1>Upload your sales file</h1>
+    <p class="muted">Choose a .csv or .xlsx file with one row per sale.</p>
+    <div class="note">
+        <strong>Needed:</strong> quantity, unit price and date (for example Quantity, UnitPrice, InvoiceDate).<br>
+        <strong>Better results with:</strong> CustomerID (customer groups), Description or StockCode (product analysis), InvoiceNo, Country, and a Stock column if you have one.<br>
+        Common names such as Qty, Price, OrderDate, SKU and Product are understood.
+    </div>
     <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".csv,.xlsx">
+        <input type="file" name="file" accept=".csv,.xlsx" required>
         <button class="btn" type="submit">Upload and analyse</button>
     </form>
+    <p class="muted small">CSV is faster than Excel. Only the first {{ "{:,}".format(max_rows) }} rows are used, so the analysis stays quick.</p>
 </div>
 {% endblock %}

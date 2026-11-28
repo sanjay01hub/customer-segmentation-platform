@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}My analyses{% endblock %}
-
 {% block content %}
 <div class="card">
     <h1>My analyses</h1>
@@ -18,7 +17,7 @@
         </table>
     </div>
     {% else %}
-        <p class="muted">No analyses yet.</p>
+        <p class="muted">No analyses yet. Upload a sales file to start.</p>
     {% endif %}
     <p><a class="btn" href="{{ url_for('upload') }}">Upload a file</a></p>
 </div>

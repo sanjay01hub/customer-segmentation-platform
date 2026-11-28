@@ -1,129 +1,159 @@
 {% extends "base.html" %}
-{% block title %}Segmentation results{% endblock %}
-
-{% block head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-{% endblock %}
-
+{% block title %}Customers to target{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
 {% block content %}
-<h1>Segmentation results</h1>
-<p class="muted">File: <strong>{{ filename }}</strong>
-   {% if from_cache %}(loaded from saved results){% else %}(freshly analysed){% endif %}</p>
-
-<div class="stats">
-    <div class="stat">
-        <div class="value">{{ "{:,}".format(result.rows) }}</div>
-        <div class="label">Clean rows</div>
+{% set active = 'customers' %}
+{% include "_tabs.html" %}
+{% set o = r.overview %}
+{% if health %}
+<div class="card health">
+    <div class="ring {{ health.tone }}" style="--p: {{ health.score }}">
+        <div><span class="score">{{ health.score }}</span><span class="of">out of 100</span></div>
     </div>
-    <div class="stat">
-        <div class="value">{{ "{:,}".format(result.customers) }}</div>
-        <div class="label">Customers</div>
-    </div>
-    <div class="stat">
-        <div class="value">{{ result.k }}</div>
-        <div class="label">Segments found</div>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Segment summary</h2>
-    <div class="table-wrap">
-        <table>
-            <tr>
-                <th>Segment</th>
-                <th>Customers</th>
-                <th>Share (%)</th>
-                <th>Avg. recency (days)</th>
-                <th>Avg. orders</th>
-                <th>Avg. spend</th>
-            </tr>
-            {% for s in result.segments %}
-            <tr>
-                <td>{{ s.Segment }}</td>
-                <td>{{ "{:,}".format(s.Customers) }}</td>
-                <td>{{ s.Share }}</td>
-                <td>{{ s.Recency }}</td>
-                <td>{{ s.Frequency }}</td>
-                <td>{{ "{:,.0f}".format(s.Monetary) }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-</div>
-
-<div class="card">
-    <div class="chart-box">
-        <canvas id="sizeChart"
-                data-labels='{{ result.segments | map(attribute="Segment") | list | tojson }}'
-                data-counts='{{ result.segments | map(attribute="Customers") | list | tojson }}'></canvas>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Marketing insights</h2>
-
-    {% set show_now = request.args.get('show') %}
-
-    {% if insights %}
-        <div id="insightsBox" {% if not show_now %}style="display:none"{% endif %}>
-            {% for i in insights %}
-            <div class="insight">
-                <h3>{{ i.segment }}</h3>
-                <p>{{ i.summary }}</p>
-                <ul>
-                    {% for a in i.actions %}
-                    <li>{{ a }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endfor %}
-        </div>
-
-        {% if not show_now %}
-        <div id="insightsIntro">
-            <p class="muted">Get an explanation and three marketing actions for each segment.</p>
-            <button class="btn" type="button"
-                    onclick="document.getElementById('insightsBox').style.display='block';
-                             document.getElementById('insightsIntro').style.display='none';">
-                Generate marketing insights
-            </button>
-        </div>
+    <div>
+        <h2>Business health score</h2>
+        <p class="verdict">{{ health.label }}</p>
+        {% for p in health.parts %}
+        <div class="part"><span>{{ p.name }}</span><div class="bar"><span style="width: {{ p.score }}%"></span></div><span>{{ p.score }}</span></div>
+        {% endfor %}
+        {% if health.actions %}
+        <h3 style="margin-top:16px">This week's action list</h3>
+        <ol class="actions">{% for a in health.actions %}<li>{{ a }}</li>{% endfor %}</ol>
         {% endif %}
-    {% else %}
-        <p class="muted">Get an explanation and three marketing actions for each segment.</p>
-        <form method="POST" action="{{ url_for('make_insights', filename=stored_name) }}">
-            <button class="btn" type="submit">Generate marketing insights</button>
-        </form>
+    </div>
+</div>
+{% endif %}
+<div class="stats">
+    <div class="stat"><div class="value">{{ "{:,.0f}".format(o.revenue) }}</div><div class="label">Total sales</div></div>
+    <div class="stat"><div class="value">{{ "{:,}".format(o.orders) }}</div><div class="label">Orders</div></div>
+    <div class="stat"><div class="value">{{ "{:,.0f}".format(o.avg_order) }}</div><div class="label">Average order value</div></div>
+    {% if o.customers %}<div class="stat"><div class="value">{{ "{:,}".format(o.customers) }}</div><div class="label">Customers</div></div>{% endif %}
+    {% if o.products %}<div class="stat"><div class="value">{{ "{:,}".format(o.products) }}</div><div class="label">Products</div></div>{% endif %}
+</div>
+
+{% if r.segmentation %}
+{% set s = r.segmentation %}
+<div class="card">
+    <h2>Who to target first</h2>
+    <p class="muted">{{ s.k }} customer groups found. Start with the group tagged for your goal.</p>
+    {% for i in r.insights %}
+    <div class="insight">
+        <div class="head">
+            <h3>{{ i.segment }}</h3>
+            <span class="badge {{ {'Reward':'b-reward','Grow':'b-grow','Win back':'b-win','Nurture':'b-nurture'}.get(i.tag, 'b-nurture') }}">{{ i.tag }}</span>
+        </div>
+        <p class="small"><strong>{{ i.why }}</strong></p>
+        <p>{{ i.summary }}</p>
+        <ul>{% for a in i.actions %}<li>{{ a }}</li>{% endfor %}</ul>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Customers per group</h2>
+        <div class="chart-box"><canvas id="sizeChart"></canvas></div>
+    </div>
+    <div class="card">
+        <h2>Group details</h2>
+        <div class="table-wrap"><table>
+            <tr><th>Group</th><th class="num">Customers</th><th class="num">Share %</th><th class="num">Last bought (days)</th><th class="num">Orders</th><th class="num">Avg. spend</th></tr>
+            {% for x in s.segments %}
+            <tr><td>{{ x.Segment }}</td><td class="num">{{ "{:,}".format(x.Customers) }}</td><td class="num">{{ x.Share }}</td>
+                <td class="num">{{ x.Recency }}</td><td class="num">{{ x.Frequency }}</td><td class="num">{{ "{:,.0f}".format(x.Monetary) }}</td></tr>
+            {% endfor %}
+        </table></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Top 15 customers by spend</h2>
+    <div class="table-wrap"><table>
+        <tr><th>Customer</th><th>Group</th><th class="num">Last bought (days)</th><th class="num">Orders</th><th class="num">Spend</th></tr>
+        {% for c in s.top_customers %}
+        <tr><td>{{ c.CustomerID }}</td><td>{{ c.Segment }}</td><td class="num">{{ c.Recency }}</td><td class="num">{{ c.Frequency }}</td><td class="num">{{ "{:,.0f}".format(c.Monetary) }}</td></tr>
+        {% endfor %}
+    </table></div>
+    <div class="btn-row"><a class="btn small" href="{{ url_for('download', filename=stored_name, kind='customers') }}">Download all customers with groups (CSV)</a></div>
+</div>
+{% else %}
+<div class="note warn">Customer groups need a CustomerID column (with at least 10 customers). This file does not have one, so the other tabs still work.</div>
+{% endif %}
+
+{% if messages %}
+<div class="card">
+    <h2>Message writer</h2>
+    <p class="muted">Ready-to-send WhatsApp or SMS messages for each customer group. Type your shop name and the messages update.</p>
+    <input class="shop-input" id="shopName" type="text" maxlength="40" placeholder="Your shop name" autocomplete="off">
+    {% for m in messages %}
+    <div class="msg">
+        <h3>{{ m.segment }}</h3>
+        <textarea class="msg-text" data-template="{{ m.text }}" readonly></textarea>
+        <div class="btn-row" style="margin-top:0">
+            <button type="button" class="btn small copy-btn">Copy</button>
+            <a class="btn small secondary wa-btn" href="#" target="_blank" rel="noopener">Open WhatsApp</a>
+        </div>
+    </div>
+    {% endfor %}
+    <p class="muted small">Check each message before sending. Only message customers who agreed to hear from you.</p>
+</div>
+{% endif %}
+
+<div class="grid-2">
+    {% if o.top_products %}
+    <div class="card"><h2>Top 10 products by sales</h2><div class="chart-box tall"><canvas id="topChart"></canvas></div></div>
+    {% endif %}
+    {% if o.top_countries %}
+    <div class="card"><h2>Sales by country / region</h2><div class="chart-box tall"><canvas id="countryChart"></canvas></div></div>
     {% endif %}
 </div>
 
-<p>
-    <a class="btn" href="{{ url_for('upload') }}">Upload another file</a>
-    <a class="btn secondary" href="{{ url_for('history') }}">My analyses</a>
-</p>
+<p class="btn-row"><a class="btn" href="{{ url_for('upload') }}">Upload another file</a><a class="btn secondary" href="{{ url_for('history') }}">My analyses</a></p>
 
 <script>
-    const chartEl = document.getElementById("sizeChart");
-    const labels = JSON.parse(chartEl.dataset.labels);
-    const counts = JSON.parse(chartEl.dataset.counts);
-
-    new Chart(chartEl, {
-        type: "bar",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Customers per segment",
-                data: counts,
-                backgroundColor: ["#2e7d32", "#1565c0", "#c62828", "#ef6c00"]
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: "Customers per segment" }
-            },
-            scales: { y: { beginAtZero: true } }
-        }
+const COLORS = ["#4a1d96", "#ff9f1c", "#0fb5a5", "#ff5c7a", "#3b82f6", "#7c3aed", "#f97316", "#14b8a6"];
+const MSG_DEFAULT = {{ _('our shop') | tojson }};
+const MSG_COPIED = {{ _('Copied!') | tojson }};
+function fillMessages() {
+    const shop = (document.getElementById("shopName")?.value || "").trim() || MSG_DEFAULT;
+    document.querySelectorAll(".msg").forEach(box => {
+        const ta = box.querySelector(".msg-text");
+        ta.value = ta.dataset.template.split("{shop}").join(shop);
+        box.querySelector(".wa-btn").href = "https://wa.me/?text=" + encodeURIComponent(ta.value);
     });
+}
+document.getElementById("shopName")?.addEventListener("input", fillMessages);
+document.querySelectorAll(".copy-btn").forEach(btn => btn.addEventListener("click", () => {
+    const ta = btn.closest(".msg").querySelector(".msg-text");
+    const done = () => { const old = btn.textContent; btn.textContent = MSG_COPIED; setTimeout(() => btn.textContent = old, 1500); };
+    if (navigator.clipboard) { navigator.clipboard.writeText(ta.value).then(done); }
+    else { ta.select(); document.execCommand("copy"); done(); }
+}));
+fillMessages();
+const short = s => s.length > 22 ? s.slice(0, 21) + "…" : s;
+{% if r.segmentation %}
+new Chart(document.getElementById("sizeChart"), {
+    type: "doughnut",
+    data: { labels: {{ r.segmentation.segments | map(attribute="Segment") | list | tojson }},
+            datasets: [{ data: {{ r.segmentation.segments | map(attribute="Customers") | list | tojson }}, backgroundColor: COLORS }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+});
+{% endif %}
+{% if o.top_products %}
+new Chart(document.getElementById("topChart"), {
+    type: "bar",
+    data: { labels: {{ o.top_products | map(attribute="name") | list | tojson }}.map(short),
+            datasets: [{ data: {{ o.top_products | map(attribute="revenue") | list | tojson }}, backgroundColor: "#4a1d96" }] },
+    options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } } }
+});
+{% endif %}
+{% if o.top_countries %}
+new Chart(document.getElementById("countryChart"), {
+    type: "bar",
+    data: { labels: {{ o.top_countries | map(attribute="name") | list | tojson }},
+            datasets: [{ data: {{ o.top_countries | map(attribute="revenue") | list | tojson }}, backgroundColor: "#0fb5a5" }] },
+    options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } } }
+});
+{% endif %}
 </script>
 {% endblock %}

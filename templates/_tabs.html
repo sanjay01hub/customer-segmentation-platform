@@ -1,0 +1,11 @@
+<h1>{{ filename }}</h1>
+<p class="muted small">{{ "{:,}".format(r.rows) }} sales rows analysed ({{ r.overview.date_from }} to {{ r.overview.date_to }})</p>
+{% if r.truncated %}
+<div class="note warn">Your file is large, so only the first {{ "{:,}".format(r.max_rows) }} rows were used to keep the site fast.</div>
+{% endif %}
+<nav class="tabs" aria-label="Analysis sections">
+    <a href="{{ url_for('results', filename=stored_name) }}" class="{{ 'active' if active == 'customers' }}">Customers to target</a>
+    <a href="{{ url_for('products', filename=stored_name) }}" class="{{ 'active' if active == 'products' }}">Fast &amp; slow products</a>
+    <a href="{{ url_for('demand_page', filename=stored_name) }}" class="{{ 'active' if active == 'demand' }}">Demand &amp; best time</a>
+    <a href="{{ url_for('audience_page', filename=stored_name) }}" class="{{ 'active' if active == 'audience' }}">Who buys what</a>
+</nav>

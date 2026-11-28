@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="card hero">
-    <h1>Customer Segmentation Platform</h1>
-    <p>Upload your customer data and get behavior-based segments, so you know who your best, loyal and at-risk customers are.</p>
+    <h1>Know your customers. Sell the right product at the right time.</h1>
+    <p>Upload your sales file and get customer groups, fast and slow products, demand forecasts and the best time to sell.</p>
     {% if current_user.is_authenticated %}
         <a class="btn" href="{{ url_for('upload') }}">Upload a file</a>
         <a class="btn secondary" href="{{ url_for('history') }}">My analyses</a>
@@ -11,5 +10,11 @@
         <a class="btn" href="{{ url_for('register') }}">Get started</a>
         <a class="btn secondary" href="{{ url_for('login') }}">Log in</a>
     {% endif %}
+</div>
+<div class="feature-grid">
+    <div class="feature"><h3>Customers to target</h3><p>See your Champions, Loyal, At-risk and Occasional buyers, and what to do for each.</p></div>
+    <div class="feature"><h3>Fast and slow products</h3><p>Find what sells quickly, what is stuck, and ideas to move it.</p></div>
+    <div class="feature"><h3>Demand and timing</h3><p>See the best months, days and hours to sell, with a simple forecast.</p></div>
+    <div class="feature"><h3>Who buys what</h3><p>Estimate which products suit children, men, women or older people.</p></div>
 </div>
 {% endblock %}

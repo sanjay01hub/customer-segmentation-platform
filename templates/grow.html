@@ -1,0 +1,80 @@
+{% extends "base_new.html" %}
+{% block title %}Grow my business{% endblock %}
+{% block content %}
+<h1>Grow my business</h1>
+<p class="lead">Tell us about your business. You get a practical plan to win more customers in your area. No file needed.</p>
+
+<div class="card">
+  <form method="post">
+    <label for="name">Your business name</label>
+    <input id="name" type="text" name="name" value="{{ form.name }}" placeholder="Your business name" required>
+
+    <label for="btype">What kind of business is it?</label>
+    <select id="btype" name="btype">
+      {% for k, v in types %}<option value="{{ k }}" {{ 'selected' if form.btype == k }}>{{ v }}</option>{% endfor %}
+    </select>
+
+    <label for="goal">What do you want most?</label>
+    <select id="goal" name="goal">
+      {% for k, v in goals %}<option value="{{ k }}" {{ 'selected' if form.goal == k }}>{{ v }}</option>{% endfor %}
+    </select>
+
+    <label for="area">Your area or town</label>
+    <input id="area" type="text" name="area" value="{{ form.area }}" placeholder="Your area or town">
+
+    <label for="problem">What problem are you facing? (optional)</label>
+    <textarea id="problem" name="problem" placeholder="For example: few customers, a competitor nearby, people say prices are high">{{ form.problem }}</textarea>
+    <p class="hint">Write in English or Tamil. We read it to add advice for your problem.</p>
+
+    <p><button class="btn" type="submit">Show my growth plan</button></p>
+  </form>
+</div>
+
+{% if plan %}
+<div class="card">
+  <h2>{{ plan.name }}</h2>
+  <p class="muted">{{ plan.type_label }}{% if plan.area %} · {{ plan.area }}{% endif %}</p>
+  <p class="muted">{{ plan.goal_label }}</p>
+</div>
+
+<div class="card">
+  <h2>Start with these three things this week</h2>
+  <ol class="steps">{% for s in plan.start %}<li>{{ s }}</li>{% endfor %}</ol>
+</div>
+
+{% for sec in plan.sections %}
+<div class="card">
+  <h2>{{ sec.title }}</h2>
+  <ul class="clean">{% for i in sec.ideas %}<li class="info">{{ i }}</li>{% endfor %}</ul>
+</div>
+{% endfor %}
+
+<div class="card">
+  <h2>Your 4-week plan</h2>
+  <div class="tablewrap">
+  <table>
+    {% for w in plan.plan %}<tr><td><strong>{{ w.week }}</strong></td><td>{{ w.todo }}</td></tr>{% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>A message you can send on WhatsApp</h2>
+  <div class="msg" id="msg">{{ plan.message }}</div>
+  <p><button class="btn ghost" type="button" onclick="copyMsg(this)">Copy</button></p>
+</div>
+
+<div class="card">
+  <h2>Track these every week</h2>
+  <ul class="clean">{% for m in plan.measure %}<li class="good">{{ m }}</li>{% endfor %}</ul>
+</div>
+
+<script>
+function copyMsg(btn){
+  var t = document.getElementById('msg').innerText;
+  if (navigator.clipboard) { navigator.clipboard.writeText(t); }
+  btn.innerText = {{ copied|tojson }};
+}
+</script>
+{% endif %}
+{% endblock %}

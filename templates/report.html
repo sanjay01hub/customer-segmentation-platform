@@ -1,0 +1,119 @@
+{% extends "base_new.html" %}
+{% block title %}Report{% endblock %}
+{% macro bars(items, cls='') %}
+<div class="bars {{ cls }}">
+  {% for b in items %}
+  <div class="row">
+    <span class="lab" title="{{ b.label }}">{{ b.label }}</span>
+    <span class="track"><span class="fill {{ 'neg' if b.neg }}" style="width:{{ b.pct }}%"></span></span>
+    <span>{{ b.value }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+{% block content %}
+<h1>Your data report</h1>
+<p class="lead">{{ filename }}</p>
+
+<div class="stats">
+  <div class="stat"><span class="k">Rows</span><span class="v">{{ '{:,}'.format(r.rows) }}</span></div>
+  <div class="stat"><span class="k">Columns</span><span class="v">{{ r.cols }}</span></div>
+  <div class="stat {{ r.tone }}"><span class="k">Data quality</span><span class="v">{{ r.quality }}/100</span></div>
+  {% if r.measure %}<div class="stat"><span class="k">Main number</span><span class="v" style="font-size:1.1rem">{{ r.measure }}</span></div>{% endif %}
+</div>
+
+{% if r.industry %}
+<div class="card">
+  <h2>{{ r.industry.label }}</h2>
+  <p class="muted">{{ r.industry.intro }}</p>
+  <ul class="clean">
+    {% for f in r.industry.findings %}<li class="{{ f.tone }}">{{ f.text }}</li>{% endfor %}
+  </ul>
+</div>
+{% for tb in r.industry.tables %}
+<div class="card">
+  <h3>{{ tb.title }}</h3>
+  <div class="tablewrap"><table>
+    <tr>{% for c in tb.cols %}<th>{{ c }}</th>{% endfor %}</tr>
+    {% for row in tb.rows %}<tr>{% for x in row %}<td>{{ x }}</td>{% endfor %}</tr>{% endfor %}
+  </table></div>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card">
+  <h2>What your data says</h2>
+  <ul class="clean">
+    {% for f in r.findings %}<li class="{{ f.tone }}">{{ f.text }}</li>{% endfor %}
+  </ul>
+</div>
+
+{% if r.actions %}
+<div class="card">
+  <h2>What to do next</h2>
+  <ol class="steps">
+    {% for a in r.actions %}<li>{{ a }}</li>{% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+{% if r.trend %}
+<div class="card">
+  <h2>Change over time</h2>
+  <p class="muted">{{ r.trend.label }}</p>
+  {{ bars(r.trend.bars, 'col') }}
+</div>
+{% endif %}
+
+{% if r.measure_by or r.counts %}
+<div class="grid g2" style="margin-bottom:16px">
+  {% for m in r.measure_by %}
+  <div class="card"><h3>{{ m.title }}</h3>{{ bars(m.bars) }}</div>
+  {% endfor %}
+  {% for m in r.counts %}
+  <div class="card"><h3>{{ m.title }}</h3>{{ bars(m.bars) }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if r.hists %}
+<h2>How the numbers are spread</h2>
+<div class="grid g2" style="margin-bottom:16px">
+  {% for h in r.hists %}
+  <div class="card"><h3>{{ h.col }}</h3>{{ bars(h.bars, 'col') }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Every column</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Missing</th><th>Unique values</th><th>Details</th></tr>
+    {% for c in r.columns %}
+    <tr>
+      <td><strong>{{ c.name }}</strong></td>
+      <td><span class="pill">{{ _(kind_labels[c.kind]) }}</span></td>
+      <td>{{ c.missing_pct }}%</td>
+      <td>{{ c.unique }}</td>
+      <td class="muted">{{ c.detail }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>First rows of your file</h2>
+  <div class="tablewrap">
+  <table>
+    <tr>{% for c in r.preview_cols %}<th>{{ c }}</th>{% endfor %}</tr>
+    {% for row in r.preview %}<tr>{% for x in row %}<td>{{ x }}</td>{% endfor %}</tr>{% endfor %}
+  </table>
+  </div>
+</div>
+
+<p><button class="btn" onclick="window.print()">Print / save as PDF</button>
+   <a class="btn ghost" href="{{ url_for('report_upload') }}">Upload another file</a>
+   <a class="btn ghost" href="{{ url_for('home') }}">Back to options</a></p>
+{% endblock %}

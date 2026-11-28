@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Business Insights{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#6d28d9; --brand-dark:#5b21b6; --brand-soft:#f3edff; --nav:#2e1065; --accent:#f59e0b; --accent-dark:#d98a06;
+    --ink:#1f2433; --muted:#667085; --line:#e6e8ef; --bg:#faf7ff; --card:#fff;
+    --good:#16794a; --good-bg:#e7f6ee; --warn:#a15c00; --warn-bg:#fff4df;
+    --bad:#b42318; --bad-bg:#fdeceb; --info:#2f5bd8; --info-bg:#eaf0ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"DM Sans","Noto Sans Tamil",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.55}
+  a{color:var(--brand)}
+  .nav{background:var(--nav);position:sticky;top:0;z-index:5}
+  .nav-in{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{font-weight:700;color:var(--accent);text-decoration:none;font-size:1.25rem}
+  .nav a.link{color:#e9e2ff;text-decoration:none;font-size:.98rem}
+  .nav a.link:hover{color:#fff}
+  .who{color:#c4b5fd;font-size:.9rem}
+  .sp{flex:1}
+  .lang a{padding:4px 10px;border:1px solid #5b3fa8;border-radius:999px;text-decoration:none;color:#e9e2ff;font-size:.85rem}
+  .lang a.on{background:var(--accent);color:var(--nav);border-color:var(--accent)}
+  main{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:1.8rem;margin:.2em 0 .3em;line-height:1.25}
+  h2{font-size:1.25rem;margin:0 0 .6em}
+  h3{font-size:1.05rem;margin:0 0 .4em}
+  .lead{color:var(--muted);max-width:720px;margin:0 0 22px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+  .grid .card{margin-bottom:0}
+  .card.option{display:flex;flex-direction:column;gap:8px}
+  .card.option .num{width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+                    display:grid;place-items:center;font-weight:700}
+  .card.option p{color:var(--muted);margin:0;flex:1}
+  .btn{display:inline-block;background:var(--accent);color:var(--nav);padding:10px 18px;border:0;border-radius:10px;
+       font-size:1rem;cursor:pointer;text-decoration:none;font-weight:600}
+  .btn:hover{background:var(--accent-dark)}
+  .btn.ghost{background:var(--brand-soft);color:var(--brand)}
+  .flash{background:var(--warn-bg);color:var(--warn);border:1px solid #f5d9a8;border-radius:10px;padding:10px 14px;margin-bottom:16px}
+  label{display:block;font-weight:600;margin:14px 0 6px}
+  input[type=text],select,textarea,input[type=file]{width:100%;padding:10px 12px;border:1px solid #cfd4e1;border-radius:10px;
+       font:inherit;background:#fff}
+  textarea{min-height:80px}
+  .hint{color:var(--muted);font-size:.9rem;margin:6px 0 0}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{display:block;color:var(--muted);font-size:.85rem}
+  .stat .v{display:block;font-size:1.5rem;font-weight:700}
+  .stat.good .v{color:var(--good)} .stat.okay .v{color:var(--warn)} .stat.bad .v{color:var(--bad)}
+  ul.clean{list-style:none;margin:0;padding:0}
+  ul.clean li{padding:10px 12px;border-radius:10px;margin-bottom:8px;border:1px solid transparent}
+  li.good{background:var(--good-bg);color:#0f5a37} li.warn{background:var(--warn-bg);color:#7a4600}
+  li.info{background:var(--info-bg);color:#1f3f9c} li.bad{background:var(--bad-bg);color:var(--bad)}
+  ol.steps{margin:0;padding-left:22px} ol.steps li{margin-bottom:8px}
+  .bars .row{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:10px;align-items:center;margin:6px 0;font-size:.92rem}
+  .bars .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bars .track{background:#eef0f6;border-radius:6px;height:14px;overflow:hidden}
+  .bars .fill{display:block;height:100%;background:var(--brand);border-radius:6px}
+  .bars .fill.neg{background:var(--bad)}
+  .bars.col .row{grid-template-columns:minmax(70px,110px) 1fr auto}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.02em}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;background:var(--brand-soft);color:var(--brand);font-weight:600}
+  .pill.red{background:var(--bad-bg);color:var(--bad)} .pill.amber{background:var(--warn-bg);color:var(--warn)}
+  .pill.green{background:var(--good-bg);color:var(--good)} .pill.grey{background:#eceef4;color:#4a5164}
+  .msg{background:var(--brand-soft);border-radius:10px;padding:12px 14px;white-space:pre-wrap}
+  .muted{color:var(--muted)}
+  @media print{ .nav,.btn,.lang,form{display:none!important} body{background:#fff} .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid} h2{break-after:avoid} }
+  @media (max-width:560px){ h1{font-size:1.45rem} .bars .row{grid-template-columns:90px 1fr auto} }
+</style>
+</head>
+<body>
+<header class="nav"><div class="nav-in">
+  <a class="brand" href="{{ url_for('home') }}">Business Insights</a>
+  <a class="link" href="{{ url_for('home') }}">Home</a>
+  {% if current_user.is_authenticated %}
+    <a class="link" href="{{ url_for('upload') }}">Upload</a>
+    <a class="link" href="{{ url_for('history') }}">My analyses</a>
+  {% endif %}
+  <span class="sp"></span>
+  <span class="lang">
+    <a href="{{ url_for('set_lang', code='en') }}" class="{{ 'on' if lang == 'en' else '' }}">English</a>
+    <a href="{{ url_for('set_lang', code='ta') }}" class="{{ 'on' if lang == 'ta' else '' }}">தமிழ்</a>
+  </span>
+  {% if current_user.is_authenticated %}
+    <span class="who">{{ current_user.email }}</span>
+    <a class="link" href="{{ url_for('logout') }}">Log out</a>
+  {% else %}
+    <a class="link" href="{{ url_for('login') }}">Log in</a>
+    <a class="link" href="{{ url_for('register') }}">Register</a>
+  {% endif %}
+</div></header>
+<main>
+  {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

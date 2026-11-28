@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Demand and best time{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+{% set active = 'demand' %}
+{% include "_tabs.html" %}
+{% set d = r.demand %}
+<div class="stats">
+    {% if d.forecast_units is not none %}<div class="stat"><div class="value">{{ "{:,}".format(d.forecast_units) }}</div><div class="label">Expected units in {{ d.forecast_month }}</div></div>{% endif %}
+    {% if d.best_months %}<div class="stat"><div class="value">{{ d.best_months | join(", ") }}</div><div class="label">Best months</div></div>{% endif %}
+    <div class="stat"><div class="value">{{ d.best_day }}</div><div class="label">Best day</div></div>
+    {% if d.best_hours %}<div class="stat"><div class="value">{{ d.best_hours | join(", ") }}</div><div class="label">Busiest hours</div></div>{% endif %}
+</div>
+
+<div class="card">
+    <h2>Sales by month</h2>
+    <div class="chart-box tall"><canvas id="monthChart"></canvas></div>
+    {% if d.forecast_units is none %}<p class="muted small">Forecasting needs at least 3 months of data.</p>
+    {% else %}<p class="muted small">The forecast is a simple estimate from recent months. It does not know about holidays or promotions.</p>{% endif %}
+</div>
+
+<div class="grid-2">
+    <div class="card"><h2>Sales by weekday</h2><div class="chart-box"><canvas id="dayChart"></canvas></div></div>
+    {% if d.hour %}
+    <div class="card"><h2>Sales by hour</h2><div class="chart-box"><canvas id="hourChart"></canvas></div></div>
+    {% else %}
+    <div class="card"><h2>Sales by month of year</h2><div class="chart-box"><canvas id="moyChart"></canvas></div></div>
+    {% endif %}
+</div>
+{% if not d.hour %}<div class="note">Your dates have no time of day, so hourly timing is not available.</div>{% endif %}
+
+{% if d.products %}
+<div class="card">
+    <h2>Top products: next month and best time to sell</h2>
+    <div class="table-wrap"><table>
+        <tr><th>Product</th><th class="num">Expected units next month</th><th>Trend</th><th>Peak months</th><th>Best day</th></tr>
+        {% for x in d.products %}
+        <tr><td>{{ x.name }}</td><td class="num">{{ x.forecast if x.forecast is not none else '-' }}</td><td>{{ x.trend or '-' }}</td><td>{{ x.peak_months }}</td><td>{{ x.best_day }}</td></tr>
+        {% endfor %}
+    </table></div>
+    <p class="muted small">Stock up and advertise a few weeks before the peak months.</p>
+</div>
+{% endif %}
+
+<script>
+const D = {{ d | tojson }};
+const grid = { maintainAspectRatio: false, plugins: { legend: { display: false } } };
+new Chart(document.getElementById("monthChart"), {
+    type: "bar",
+    data: { labels: D.months, datasets: [{ label: {{ _("Units") | tojson }}, data: D.month_units, backgroundColor: "#4a1d96" }] },
+    options: grid
+});
+new Chart(document.getElementById("dayChart"), {
+    type: "bar",
+    data: { labels: {{ [_("Mon"), _("Tue"), _("Wed"), _("Thu"), _("Fri"), _("Sat"), _("Sun")] | tojson }}, datasets: [{ data: D.weekday, backgroundColor: "#ff9f1c" }] },
+    options: grid
+});
+if (D.hour) {
+    new Chart(document.getElementById("hourChart"), {
+        type: "line",
+        data: { labels: D.hour.map((_, i) => i + ":00"), datasets: [{ data: D.hour, borderColor: "#0fb5a5", backgroundColor: "rgba(15,181,165,0.15)", fill: true, tension: 0.3 }] },
+        options: grid
+    });
+} else {
+    new Chart(document.getElementById("moyChart"), {
+        type: "bar",
+        data: { labels: {{ [_("Jan"), _("Feb"), _("Mar"), _("Apr"), _("May"), _("Jun"), _("Jul"), _("Aug"), _("Sep"), _("Oct"), _("Nov"), _("Dec")] | tojson }}, datasets: [{ data: D.moy, backgroundColor: "#0fb5a5" }] },
+        options: grid
+    });
+}
+</script>
+{% endblock %}
